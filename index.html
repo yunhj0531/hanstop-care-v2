@@ -235,6 +235,72 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 /* ── TOAST ── */
 #toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-primary);padding:10px 22px;border-radius:30px;font-size:13px;opacity:0;pointer-events:none;transition:all .28s;z-index:999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── RESPONSIVE ── */
+
+/* 소형 폰 (360px 미만) */
+@media (max-width:359px){
+  .header{padding:0 14px;height:56px}
+  .dashboard-hero{margin:14px 14px 0;padding:18px}
+  .hero-stat .num{font-size:17px}
+  .section{padding:0 14px}
+  .splash-brand{font-size:24px}
+  .splash-tagline{font-size:14px}
+  .q-list{padding:14px 14px 48px}
+  .note-section-title,.note-warning,.note-progress-strip{margin-left:14px;margin-right:14px}
+  .quick-card-title{font-size:11px}
+  .btn-start{font-size:14px;height:50px}
+}
+
+/* 데스크톱 / 태블릿 — 앱을 화면 중앙에 폰 프레임으로 표시 */
+@media (min-width:480px){
+  html,body{
+    background:linear-gradient(135deg,#050B1A 0%,#0A1228 50%,#111E3A 100%);
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    min-height:100vh;
+    overflow-y:auto;
+  }
+  .app-shell{
+    max-width:430px;
+    width:100%;
+    min-height:100vh;
+    box-shadow:0 0 0 1px rgba(255,255,255,.06),0 24px 80px rgba(0,0,0,.7);
+    border-radius:0;
+    flex-shrink:0;
+  }
+  /* 메뉴 오버레이가 app-shell 영역에만 적용되도록 */
+  .menu-overlay{
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    width:430px;
+    top:0;
+    bottom:0;
+    margin:0;
+    inset:auto;
+  }
+  .menu-overlay.open{display:flex}
+  #toast{
+    left:50%;
+    transform:translateX(-50%) translateY(12px);
+    max-width:400px;
+  }
+  #toast.show{transform:translateX(-50%) translateY(0)}
+}
+
+/* 가로 모드 (landscape) */
+@media (max-height:500px) and (orientation:landscape){
+  .splash-top{padding-top:32px}
+  .splash-logo-mark{width:44px;height:44px;margin-bottom:12px}
+  .splash-divider{margin:16px auto}
+  .splash-bottom{padding-bottom:24px;gap:12px}
+  .splash-tagline{font-size:13px;line-height:1.6}
+  .login-wrap{padding:40px 28px 24px}
+  .dashboard-hero{padding:16px}
+  .hero-stat .num{font-size:16px}
+}
 </style>
 </head>
 <body>
