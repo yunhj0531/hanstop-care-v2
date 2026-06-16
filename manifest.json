@@ -1,7 +1,7 @@
 {
-  "name": "한스톱케어 엔딩노트",
-  "short_name": "엔딩노트",
-  "description": "가족을 위한 마지막 배려, 엔딩노트",
+  "name": "라스트페이지 — 원스톱 엔딩 케어 플랫폼",
+  "short_name": "라스트페이지",
+  "description": "인생의 마지막 페이지를 가장 나답게, 남겨진 이들을 가장 편안하게",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
