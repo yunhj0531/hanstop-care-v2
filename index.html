@@ -4,6 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <title>한스톱케어 엔딩노트</title>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#C9A961"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="엔딩노트"/>
+<link rel="apple-touch-icon" href="icon.svg"/>
 <style>
 :root{
   --bg-primary:#0A1228;
@@ -29,9 +35,11 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 .app-shell{max-width:430px;margin:0 auto;min-height:100%;position:relative;background:var(--bg-primary);overflow:hidden}
 
 /* ── SCREEN ── */
-.screen{display:none;width:100%;min-height:100vh;flex-direction:column;animation:fadeIn .3s ease}
-.screen.active{display:flex}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.screen{display:none;width:100%;min-height:100vh;flex-direction:column}
+.screen.active{display:flex;animation:slideInR .28s cubic-bezier(.33,1,.68,1)}
+.screen.active.back{animation:slideInL .28s cubic-bezier(.33,1,.68,1)}
+@keyframes slideInR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes slideInL{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
 
 /* ── SCROLL ── */
 .scroll-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:48px}
@@ -236,6 +244,35 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 #toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-primary);padding:10px 22px;border-radius:30px;font-size:13px;opacity:0;pointer-events:none;transition:all .28s;z-index:999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── SAVE INDICATOR ── */
+#save-ind{position:fixed;top:68px;right:16px;z-index:400;background:rgba(95,206,168,.15);border:1px solid rgba(95,206,168,.35);color:var(--teal-accent);font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .25s;letter-spacing:.3px}
+#save-ind.show{opacity:1}
+
+/* ── PHOTO UPLOAD ── */
+.photo-upload-area{display:flex;align-items:center;gap:16px;margin:0 20px 4px;background:var(--bg-card);border:1px dashed var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.photo-upload-area:active{background:var(--bg-card-light)}
+.photo-circle{width:64px;height:64px;border-radius:50%;background:var(--bg-secondary);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;overflow:hidden}
+.photo-circle img{width:100%;height:100%;object-fit:cover;display:none}
+.photo-upload-info .pu-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:3px}
+.photo-upload-info .pu-sub{font-size:11px;color:var(--text-muted)}
+
+/* ── COMPLETION SHEET ── */
+.complete-sheet{position:fixed;inset:0;z-index:500;display:none;align-items:flex-end;max-width:430px;margin:0 auto}
+.complete-sheet.open{display:flex}
+.complete-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.complete-card{position:relative;width:100%;background:var(--bg-secondary);border-radius:24px 24px 0 0;border-top:1px solid var(--border-card);padding:28px 28px 44px;text-align:center;transform:translateY(100%);transition:transform .38s cubic-bezier(.33,1,.68,1)}
+.complete-sheet.open .complete-card{transform:none}
+.complete-handle{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 24px}
+.complete-icon-wrap{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dark),var(--gold));display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 16px;box-shadow:0 8px 32px rgba(201,169,97,.4);animation:popIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+.complete-title{font-size:22px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}
+.complete-sub{font-size:13px;color:var(--text-muted);margin-bottom:28px;line-height:1.7;word-break:keep-all}
+
+/* ── RIPPLE ── */
+.quick-card,.btn-primary,.btn-teal{overflow:hidden;position:relative}
+.ripple-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.18);transform:scale(0);animation:rippleAnim .55s ease-out forwards;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+
 /* ── RESPONSIVE ── */
 
 /* 소형 폰 (360px 미만) */
@@ -270,8 +307,8 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
     border-radius:0;
     flex-shrink:0;
   }
-  /* 메뉴 오버레이가 app-shell 영역에만 적용되도록 */
-  .menu-overlay{
+  /* 메뉴/완료시트 오버레이가 app-shell 영역에만 적용되도록 */
+  .menu-overlay,.complete-sheet{
     position:fixed;
     left:50%;
     transform:translateX(-50%);
@@ -282,6 +319,8 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
     inset:auto;
   }
   .menu-overlay.open{display:flex}
+  .complete-sheet.open{display:flex}
+  #save-ind{right:calc(50% - 215px + 16px)}
   #toast{
     left:50%;
     transform:translateX(-50%) translateY(12px);
@@ -439,9 +478,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-note-basic" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div class="note-section-title">
@@ -451,6 +490,17 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
     <div class="note-progress-strip">
       <div class="prog-bar"><div class="prog-fill" id="prog-basic" style="width:0%"></div></div>
       <span class="prog-label" id="prog-basic-label">0 / 5</span>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this)"/>
+    <div class="photo-upload-area" onclick="document.getElementById('photo-input').click()">
+      <div class="photo-circle" id="photo-circle">
+        <img id="photo-preview"/>
+        <span id="photo-placeholder">📷</span>
+      </div>
+      <div class="photo-upload-info">
+        <div class="pu-title">프로필 사진 추가</div>
+        <div class="pu-sub">인쇄 출력 시 함께 표시됩니다<br>JPG, PNG 지원</div>
+      </div>
     </div>
     <div class="q-list">
       <div class="q-item" id="qi-basic-1">
@@ -483,9 +533,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-note-contacts" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div class="note-section-title">
@@ -522,9 +572,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-note-finance" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div class="note-section-title">
@@ -580,9 +630,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-note-medical" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div class="note-section-title">
@@ -648,9 +698,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-note-funeral" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div class="note-section-title">
@@ -714,9 +764,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-note-aftercare" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div class="note-section-title">
@@ -765,9 +815,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-note-digital" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div class="note-section-title">
@@ -839,9 +889,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-note-message" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div class="note-section-title">
@@ -890,9 +940,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-share" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div class="page-header">
@@ -943,9 +993,9 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
 ════════════════════════════════ -->
 <div id="screen-settings" class="screen">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="header-back" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="header-brand">한스톱케어</div>
-    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+    <div class="header-actions"><button class="header-btn" onclick="showScreen('screen-home','back')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button><button class="header-btn" onclick="showToast('알림이 없습니다')" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><button class="header-btn" onclick="openMenu()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
   </div>
   <div class="scroll-content">
     <div style="padding:20px 20px 8px">
@@ -960,6 +1010,10 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
     <div style="padding:0 20px">
       <div class="settings-row" onclick="toast('프로필 편집 준비 중')">
         <div class="settings-row-left"><div class="settings-icon">✏️</div><div><div class="settings-label">프로필 편집</div><div class="settings-sub">이름, 이메일 수정</div></div></div>
+        <span class="settings-arrow">›</span>
+      </div>
+      <div class="settings-row" onclick="printNote()">
+        <div class="settings-row-left"><div class="settings-icon">🖨️</div><div><div class="settings-label">인쇄 / PDF 저장</div><div class="settings-sub">엔딩노트 전체 출력</div></div></div>
         <span class="settings-arrow">›</span>
       </div>
       <div class="settings-row" onclick="exportData()">
@@ -1001,7 +1055,7 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
     </div>
     <div class="menu-section">
       <div class="menu-section-label">엔딩노트</div>
-      <div class="menu-item" onclick="closeMenu();showScreen('screen-home')">
+      <div class="menu-item" onclick="closeMenu();showScreen('screen-home','back')">
         <div class="menu-item-icon icon-gold">🏠</div>
         <span class="menu-item-label">홈 대시보드</span>
       </div>
@@ -1066,6 +1120,21 @@ html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);fon
   </div>
 </div>
 
+<!-- SAVE INDICATOR -->
+<div id="save-ind">✓ 저장됨</div>
+
+<!-- COMPLETION SHEET -->
+<div class="complete-sheet" id="complete-sheet">
+  <div class="complete-backdrop" onclick="closeCompleteSheet()"></div>
+  <div class="complete-card">
+    <div class="complete-handle"></div>
+    <div class="complete-icon-wrap">🎉</div>
+    <div class="complete-title" id="complete-title">섹션 완료!</div>
+    <div class="complete-sub" id="complete-sub">모든 항목을 작성했습니다.<br>소중한 기록이 안전하게 저장되었습니다.</div>
+    <button class="btn-primary" onclick="closeCompleteSheet()">확인</button>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
@@ -1094,33 +1163,29 @@ function save(key, val){
   saveD();
   updateQCheck(key, val);
   refreshProgress();
+  showSaveInd();
+  checkSectionComplete(key.split('-')[0]);
 }
 
 function setToggle(key, val, btn){
   btn.closest('.q-item').querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  D[key] = val;
-  saveD();
-  updateQCheck(key, val);
-  refreshProgress();
+  D[key] = val; saveD(); updateQCheck(key, val); refreshProgress();
+  showSaveInd(); checkSectionComplete(key.split('-')[0]);
 }
 
 function setChip(key, val, btn){
   btn.closest('.q-item').querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  D[key] = val;
-  saveD();
-  updateQCheck(key, val);
-  refreshProgress();
+  D[key] = val; saveD(); updateQCheck(key, val); refreshProgress();
+  showSaveInd(); checkSectionComplete(key.split('-')[0]);
 }
 
 function setDisp(key, val, btn){
   btn.closest('.q-item').querySelectorAll('.disp-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  D[key] = val;
-  saveD();
-  updateQCheck(key, val);
-  refreshProgress();
+  D[key] = val; saveD(); updateQCheck(key, val); refreshProgress();
+  showSaveInd(); checkSectionComplete(key.split('-')[0]);
 }
 
 function updateToggleDetail(key, val){
@@ -1264,10 +1329,12 @@ function buildHomeGrid(){
 }
 
 // ── 화면 전환 ──
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+function showScreen(id, dir){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','back'));
   const target = document.getElementById(id);
-  if(target) target.classList.add('active');
+  if(!target) return;
+  target.classList.add('active');
+  if(dir === 'back') target.classList.add('back');
   window.scrollTo(0, 0);
   if(id === 'screen-home') refreshProgress();
 }
@@ -1339,15 +1406,174 @@ function toast(msg){
   clearTimeout(el._t);
   el._t = setTimeout(() => el.classList.remove('show'), 2600);
 }
+const showToast = toast;
+
+// ── 자동저장 인디케이터 ──
+let _saveTm;
+function showSaveInd(){
+  const el = document.getElementById('save-ind');
+  el.classList.add('show');
+  clearTimeout(_saveTm);
+  _saveTm = setTimeout(() => el.classList.remove('show'), 1600);
+}
+
+// ── 섹션 완료 축하 ──
+const _completedSections = new Set();
+function checkSectionComplete(secId){
+  const sec = SECTIONS.find(s => s.id === secId);
+  if(!sec) return;
+  const done = calcProgress(sec);
+  if(done === sec.total && !_completedSections.has(secId)){
+    _completedSections.add(secId);
+    setTimeout(() => showCompleteSheet(sec), 400);
+  } else if(done < sec.total){
+    _completedSections.delete(secId);
+  }
+}
+
+function showCompleteSheet(sec){
+  document.getElementById('complete-title').textContent = `"${sec.name}" 완료! 🎉`;
+  document.getElementById('complete-sub').textContent =
+    `${sec.name}의 모든 ${sec.total}개 항목을 작성했습니다.\n소중한 기록이 안전하게 저장되었습니다.`;
+  document.getElementById('complete-sheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCompleteSheet(){
+  document.getElementById('complete-sheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── 사진 업로드 ──
+function handlePhoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 5 * 1024 * 1024){ toast('5MB 이하 사진만 업로드 가능합니다'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    D._photo = e.target.result;
+    saveD();
+    const img = document.getElementById('photo-preview');
+    const ph  = document.getElementById('photo-placeholder');
+    if(img){ img.src = e.target.result; img.style.display = 'block'; }
+    if(ph) ph.style.display = 'none';
+    toast('사진이 저장되었습니다');
+  };
+  reader.readAsDataURL(file);
+}
+
+function restorePhoto(){
+  if(!D._photo) return;
+  const img = document.getElementById('photo-preview');
+  const ph  = document.getElementById('photo-placeholder');
+  if(img){ img.src = D._photo; img.style.display = 'block'; }
+  if(ph) ph.style.display = 'none';
+}
+
+// ── PDF·인쇄 출력 ──
+function printNote(){
+  const name = D._userName || '이름 없음';
+  const date = new Date().toLocaleDateString('ko-KR');
+  const photoHtml = D._photo
+    ? `<img src="${D._photo}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #C9A961;margin-right:16px;vertical-align:middle">`
+    : '';
+
+  const sections = SECTIONS.map(sec => {
+    const qs = [];
+    for(let i = 1; i <= sec.total; i++){
+      const qi = document.getElementById(`qi-${sec.id}-${i}`);
+      const qtext = qi ? (qi.querySelector('.q-text')?.textContent?.trim() || `질문 ${i}`) : `질문 ${i}`;
+      const ans = D[`${sec.id}-${i}`] || '';
+      qs.push({ q: qtext, a: ans });
+    }
+    return { ...sec, qs };
+  });
+
+  const html = `<!DOCTYPE html><html lang="ko"><head>
+<meta charset="UTF-8"><title>한스톱케어 엔딩노트 — ${name}</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:'Noto Sans KR',Arial,sans-serif;color:#222;padding:32px;max-width:760px;margin:0 auto;line-height:1.6;background:#fff}
+  .cover{display:flex;align-items:center;border-bottom:3px solid #C9A961;padding-bottom:20px;margin-bottom:28px}
+  .cover-info h1{color:#A88840;font-size:26px;margin:0 0 4px}
+  .cover-info .meta{font-size:13px;color:#888}
+  .section{margin-bottom:32px;page-break-inside:avoid}
+  .sec-title{font-size:17px;font-weight:700;color:#A88840;background:#FFF8E7;border-left:4px solid #C9A961;padding:8px 14px;border-radius:0 6px 6px 0;margin-bottom:12px}
+  .q-block{margin-bottom:12px;border:1px solid #eee;border-radius:6px;padding:12px 16px;break-inside:avoid}
+  .q-label{font-size:11px;font-weight:700;color:#C9A961;margin-bottom:3px}
+  .q-title{font-size:14px;font-weight:600;color:#333;margin-bottom:6px}
+  .q-ans{font-size:13px;color:#555;background:#f9f9f9;padding:8px 12px;border-radius:4px;min-height:24px;white-space:pre-wrap;word-break:keep-all}
+  .empty{color:#bbb;font-style:italic}
+  @media print{body{padding:16px}@page{margin:20mm}}
+</style></head><body>
+<div class="cover">
+  ${photoHtml}
+  <div class="cover-info">
+    <h1>한스톱케어 엔딩노트</h1>
+    <div class="meta">작성자: <strong>${name}</strong> &nbsp;·&nbsp; 출력일: ${date}</div>
+  </div>
+</div>
+${sections.map((sec, si) => `
+<div class="section">
+  <div class="sec-title">${sec.icon} ${sec.name}</div>
+  ${sec.qs.map((item, qi) => `
+  <div class="q-block">
+    <div class="q-label">Q${qi+1}</div>
+    <div class="q-title">${item.q}</div>
+    <div class="q-ans">${item.a
+      ? item.a.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      : '<span class="empty">미작성</span>'}</div>
+  </div>`).join('')}
+</div>`).join('')}
+</body></html>`;
+
+  const win = window.open('','_blank','width=800,height=700');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 600);
+}
+
+// ── 리플 효과 ──
+function addRipple(e){
+  const el = e.currentTarget;
+  const rect = el.getBoundingClientRect();
+  const dot = document.createElement('span');
+  dot.className = 'ripple-dot';
+  const size = Math.max(rect.width, rect.height);
+  dot.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  el.appendChild(dot);
+  setTimeout(() => dot.remove(), 600);
+}
 
 // ── 초기화 실행 ──
 loadD();
 buildHomeGrid();
 restoreUI();
+restorePhoto();
 refreshProgress();
 
 if(D._userName){
   updateUserDisplay(D._userName, D._userEmail || '');
+}
+
+// 카드에 리플 효과 부착
+document.querySelectorAll('.quick-card,.btn-primary,.btn-teal').forEach(el => {
+  el.addEventListener('click', addRipple);
+});
+
+// 완료된 섹션 초기 복원
+SECTIONS.forEach(sec => {
+  if(calcProgress(sec) === sec.total) _completedSections.add(sec.id);
+});
+
+// 설정 화면 인쇄 버튼 이벤트 연결
+const printBtn = document.getElementById('print-btn');
+if(printBtn) printBtn.addEventListener('click', printNote);
+
+// PWA 서비스 워커 등록
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 </script>
 </body>

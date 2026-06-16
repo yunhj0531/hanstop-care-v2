@@ -1,0 +1,19 @@
+{
+  "name": "한스톱케어 엔딩노트",
+  "short_name": "엔딩노트",
+  "description": "가족을 위한 마지막 배려, 엔딩노트",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0A1228",
+  "theme_color": "#C9A961",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
